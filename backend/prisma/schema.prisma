@@ -1,0 +1,146 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+enum MessageRole {
+  user
+  assistant
+}
+
+enum AgentType {
+  router
+  support
+  order
+  billing
+  fallback
+}
+
+enum OrderStatus {
+  pending
+  processing
+  shipped
+  delivered
+  cancelled
+}
+
+enum ShipmentStatus {
+  label_created
+  in_transit
+  out_for_delivery
+  delivered
+  exception
+}
+
+enum InvoiceStatus {
+  draft
+  open
+  paid
+  void
+}
+
+enum RefundStatus {
+  requested
+  approved
+  processing
+  completed
+  rejected
+}
+
+model User {
+  id            String         @id @default(uuid())
+  email         String         @unique
+  name          String
+  conversations Conversation[]
+  orders        Order[]
+  invoices      Invoice[]
+  createdAt     DateTime       @default(now())
+}
+
+model Conversation {
+  id        String    @id @default(uuid())
+  userId    String
+  user      User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String?
+  messages  Message[]
+  createdAt DateTime  @default(now())
+  updatedAt DateTime  @updatedAt
+
+  @@index([userId, updatedAt])
+}
+
+model Message {
+  id             String       @id @default(uuid())
+  conversationId String
+  conversation   Conversation @relation(fields: [conversationId], references: [id], onDelete: Cascade)
+  role           MessageRole
+  content        String
+  agentType      AgentType?
+  reasoning      String?
+  toolCalls      Json?
+  createdAt      DateTime     @default(now())
+
+  @@index([conversationId, createdAt])
+}
+
+model Order {
+  id          String      @id @default(uuid())
+  userId      String
+  user        User        @relation(fields: [userId], references: [id])
+  orderNumber String      @unique
+  status      OrderStatus
+  total       Decimal     @db.Decimal(10, 2)
+  items       OrderItem[]
+  shipments   Shipment[]
+  invoices    Invoice[]
+  placedAt    DateTime    @default(now())
+}
+
+model OrderItem {
+  id          String  @id @default(uuid())
+  orderId     String
+  order       Order   @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  productName String
+  quantity    Int
+  unitPrice   Decimal @db.Decimal(10, 2)
+}
+
+model Shipment {
+  id                String         @id @default(uuid())
+  orderId           String
+  order             Order          @relation(fields: [orderId], references: [id], onDelete: Cascade)
+  carrier           String
+  trackingNumber    String
+  status            ShipmentStatus
+  estimatedDelivery DateTime?
+}
+
+model Invoice {
+  id            String        @id @default(uuid())
+  userId        String
+  user          User          @relation(fields: [userId], references: [id])
+  orderId       String?
+  order         Order?        @relation(fields: [orderId], references: [id])
+  invoiceNumber String        @unique
+  amount        Decimal       @db.Decimal(10, 2)
+  status        InvoiceStatus
+  refunds       Refund[]
+  issuedAt      DateTime      @default(now())
+  paidAt        DateTime?
+}
+
+model Refund {
+  id          String       @id @default(uuid())
+  invoiceId   String
+  invoice     Invoice      @relation(fields: [invoiceId], references: [id], onDelete: Cascade)
+  amount      Decimal      @db.Decimal(10, 2)
+  status      RefundStatus
+  reason      String?
+  requestedAt DateTime     @default(now())
+  completedAt DateTime?
+}

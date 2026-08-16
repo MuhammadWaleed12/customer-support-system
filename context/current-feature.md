@@ -8,7 +8,7 @@ Phase 1 — Foundation (monorepo scaffold, Hono RPC, Prisma schema, seed script)
 
 <!-- Not Started|In Progress|Completed -->
 
-In Progress
+Completed
 
 ## Goals
 
@@ -36,3 +36,4 @@ Per the Build Order in project-overview.md:
 <!-- Keep this updated. Earliest to latest -->
 
 - Project setup and boilerplate cleanup
+- Phase 1 — Foundation: Turborepo/pnpm monorepo scaffolded, Hono backend with `/health` round-tripping through Hono RPC (chained `.route()`, `AppType`), React 19 + Vite frontend with Tailwind v4 and `hc<AppType>` client, full Prisma schema migrated to Supabase, seed script verified against live DB (3 users, 8 orders across all statuses, 4 shipments incl. 1 exception, 6 invoices across all statuses, 3 refunds incl. 2 mid-flight, 3 conversations with messages). Build and typecheck pass across both workspaces.
