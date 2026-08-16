@@ -6,17 +6,17 @@ export type ConversationSummary = InferResponseType<
   typeof client.api.chat.conversations.$get
 >[number];
 
-export function useConversations(userId: string | undefined) {
+export function useConversations(enabled: boolean) {
   const [conversations, setConversations] = useState<ConversationSummary[]>([]);
   const [loading, setLoading] = useState(true);
 
   const refetch = useCallback(async () => {
-    if (!userId) return;
+    if (!enabled) return;
     setLoading(true);
-    const res = await client.api.chat.conversations.$get({ query: { userId } });
+    const res = await client.api.chat.conversations.$get();
     if (res.ok) setConversations(await res.json());
     setLoading(false);
-  }, [userId]);
+  }, [enabled]);
 
   useEffect(() => {
     refetch();

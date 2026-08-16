@@ -2,7 +2,7 @@
 
 <!-- Feature Name -->
 
-Phase 5 — Bonuses (rate limiting, live token streaming)
+Authentication (custom email/password + sessions, seeded users only)
 
 ## Status
 
@@ -14,22 +14,18 @@ Completed
 
 <!-- Goals & requirements -->
 
-Per the Build Order and Bonus Points table in project-overview.md, scoped down after review:
-
-- Rate limiting on the chat send endpoint (the one that costs real LLM API calls)
-- Real token streaming for chat responses, replacing Phase 4's buffered JSON response — completes the reasoning/typing-indicator bonus with a live routing badge and token-by-token text
-
-**Explicitly skipped, with reasons:**
-
-- Deployment — project-spec.md's "Explicitly out of scope" list overrides project-overview.md's bonus table on this point
-- Context compaction, useworkflow.dev — both labeled "Stretch" (lowest priority), skipped given time already spent
+- Only the pre-existing seeded users can log in — no public signup
+- User-switcher dropdown removed; the session determines the current user
+- `userId` derived from the session everywhere, never trusted from client input
+- Ownership verification on conversation read/delete (currently missing)
 
 ## Notes
 
 <!-- Any extra notes -->
 
-- Full details in `context/features/phase-5-bonuses.md`.
-- Branch: `feature/phase-5-bonuses`
+- Full details in `context/features/authentication.md`.
+- This reverses project-spec.md's explicit "no auth" scope decision — the user's own call, made after the graded build was complete.
+- Branch: `feature/authentication`
 
 ## History
 
@@ -41,3 +37,5 @@ Per the Build Order and Bonus Points table in project-overview.md, scoped down a
 - Phase 3 — Agents. See `context/features/phase-3-agents.md`.
 - Phase 4 — API & UI. See `context/features/phase-4-api-ui.md`.
 - Phase 5 — Bonuses. See `context/features/phase-5-bonuses.md`.
+- Deployment prep (Railway + Vercel).
+- Authentication. See `context/features/authentication.md`.

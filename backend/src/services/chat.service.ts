@@ -46,7 +46,7 @@ export const chatService = {
       async start(controller) {
         try {
           const conversation: { id: string; title: string | null; messages: MessageDetails[] } = input.conversationId
-            ? await conversationService.getById(input.conversationId)
+            ? await conversationService.getById(input.conversationId, input.userId)
             : { ...(await conversationService.create(input.userId, deriveTitle(input.content))), messages: [] };
 
           const context = conversation.messages.slice(-CONTEXT_WINDOW);

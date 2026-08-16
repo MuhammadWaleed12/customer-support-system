@@ -1,9 +1,15 @@
 import { PrismaClient } from "@prisma/client";
+import { hashPassword } from "../src/lib/password.js";
 
 const prisma = new PrismaClient();
 
+// Shared demo password for all seeded users — this is a demo/assessment
+// dataset, not real accounts, so one clearly-documented password is fine.
+const DEMO_PASSWORD = "password123";
+
 async function main() {
   // Wipe in FK-safe order (children before parents) so the script is re-runnable.
+  await prisma.session.deleteMany();
   await prisma.refund.deleteMany();
   await prisma.message.deleteMany();
   await prisma.shipment.deleteMany();
@@ -13,14 +19,16 @@ async function main() {
   await prisma.conversation.deleteMany();
   await prisma.user.deleteMany();
 
+  const passwordHash = hashPassword(DEMO_PASSWORD);
+
   const alice = await prisma.user.create({
-    data: { email: "alice@example.com", name: "Alice Chen" },
+    data: { email: "alice@example.com", name: "Alice Chen", passwordHash },
   });
   const marcus = await prisma.user.create({
-    data: { email: "marcus@example.com", name: "Marcus Johnson" },
+    data: { email: "marcus@example.com", name: "Marcus Johnson", passwordHash },
   });
   const priya = await prisma.user.create({
-    data: { email: "priya@example.com", name: "Priya Patel" },
+    data: { email: "priya@example.com", name: "Priya Patel", passwordHash },
   });
 
   const ord1001 = await prisma.order.create({
@@ -339,6 +347,7 @@ async function main() {
   console.log("  Shipments: 4 (including 1 exception)");
   console.log(`  Invoices: 6 (${[inv2001, inv2002, inv2003, inv2004, inv2005, inv2006].length}), refunds: 3 (2 mid-flight, 1 completed)`);
   console.log("  Conversations: 3, with messages");
+  console.log(`  Login: any seeded email above, password "${DEMO_PASSWORD}"`);
 }
 
 main()

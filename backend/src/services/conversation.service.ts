@@ -80,9 +80,14 @@ export const conversationService = {
     return conversations.map(toSummary);
   },
 
-  async getById(conversationId: string): Promise<ConversationDetails> {
+  /**
+   * `userId` scopes the lookup to its owner — a mismatch and a missing
+   * conversation both resolve to NotFoundError, so a caller can't tell the
+   * difference between "doesn't exist" and "exists but isn't yours".
+   */
+  async getById(conversationId: string, userId: string): Promise<ConversationDetails> {
     const conversation = await prisma.conversation.findUnique({
-      where: { id: conversationId },
+      where: { id: conversationId, userId },
       include: { messages: { orderBy: { createdAt: "asc" } } },
     });
 
@@ -140,9 +145,9 @@ export const conversationService = {
     return toMessageDetails(message);
   },
 
-  async remove(conversationId: string): Promise<void> {
+  async remove(conversationId: string, userId: string): Promise<void> {
     const conversation = await prisma.conversation.findUnique({
-      where: { id: conversationId },
+      where: { id: conversationId, userId },
     });
 
     if (!conversation) {

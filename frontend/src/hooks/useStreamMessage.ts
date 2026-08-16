@@ -29,14 +29,13 @@ export interface StreamingMessage {
 }
 
 interface SendMessageInput {
-  userId: string;
   conversationId?: string;
   content: string;
 }
 
 interface StreamHandlers {
-  onRouting?: (event: Extract<ChatStreamEvent, { type: "routing" }>) => void;
-  onDone?: (event: Extract<ChatStreamEvent, { type: "done" }>) => void;
+  onRouting?: (event: Extract<ChatStreamEvent, { type: "routing" }>) => void | Promise<void>;
+  onDone?: (event: Extract<ChatStreamEvent, { type: "done" }>) => void | Promise<void>;
   onError?: (message: string) => void;
 }
 
@@ -52,8 +51,14 @@ export function useStreamMessage() {
       const res = await fetch(`${API_URL}/api/chat/messages`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
+        credentials: "include",
         body: JSON.stringify(input),
       });
+
+      if (res.status === 401) {
+        handlers.onError?.("Your session has expired. Please sign in again.");
+        return;
+      }
 
       if (!res.ok || !res.body) {
         const body = await res.json().catch(() => null);
@@ -83,11 +88,11 @@ export function useStreamMessage() {
 
           if (event.type === "routing") {
             setStreaming({ agentType: event.agent, reasoning: event.reasoning, text: "" });
-            handlers.onRouting?.(event);
+            await handlers.onRouting?.(event);
           } else if (event.type === "text-delta") {
             setStreaming((current) => (current ? { ...current, text: current.text + event.delta } : current));
           } else if (event.type === "done") {
-            handlers.onDone?.(event);
+            await handlers.onDone?.(event);
           } else if (event.type === "error") {
             handlers.onError?.(event.message);
           }

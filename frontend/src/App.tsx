@@ -1,9 +1,10 @@
-import { useEffect, useState } from "react";
+import { useState } from "react";
+import { LogOut } from "lucide-react";
+import { LoginForm } from "./components/auth/LoginForm";
 import { Sidebar } from "./components/chat/Sidebar";
 import { MessageThread } from "./components/chat/MessageThread";
 import { ChatInput } from "./components/chat/ChatInput";
-import { UserSwitcher } from "./components/layout/UserSwitcher";
-import { useUsers } from "./hooks/useUsers";
+import { useAuth } from "./hooks/useAuth";
 import { useConversations } from "./hooks/useConversations";
 import { useConversation } from "./hooks/useConversation";
 import { useStreamMessage } from "./hooks/useStreamMessage";
@@ -11,26 +12,19 @@ import { useDeleteConversation } from "./hooks/useDeleteConversation";
 import { useToast } from "./hooks/useToast";
 
 function App() {
-  const { users } = useUsers();
-  const [userId, setUserId] = useState<string | undefined>(undefined);
+  const { user, checkingSession, loggingIn, login, logout } = useAuth();
   const [activeConversationId, setActiveConversationId] = useState<string | undefined>(undefined);
 
-  useEffect(() => {
-    if (!userId && users.length > 0) setUserId(users[0]!.id);
-  }, [users, userId]);
-
   const { conversations, loading: conversationsLoading, refetch: refetchConversations } =
-    useConversations(userId);
+    useConversations(Boolean(user));
   const { conversation, fetchById: fetchConversationById } = useConversation(activeConversationId);
   const { sendMessage, sending, streaming } = useStreamMessage();
   const { deleteConversation } = useDeleteConversation();
   const { showToast } = useToast();
 
   async function handleSend(content: string) {
-    if (!userId) return;
-
     await sendMessage(
-      { userId, conversationId: activeConversationId, content },
+      { conversationId: activeConversationId, content },
       {
         onRouting: async (event) => {
           setActiveConversationId(event.conversationId);
@@ -55,6 +49,19 @@ function App() {
     await refetchConversations();
   }
 
+  async function handleLogout() {
+    await logout();
+    setActiveConversationId(undefined);
+  }
+
+  if (checkingSession) {
+    return <div className="flex min-h-screen items-center justify-center text-sm text-neutral-500">Loading…</div>;
+  }
+
+  if (!user) {
+    return <LoginForm onLogin={login} loading={loggingIn} />;
+  }
+
   return (
     <div className="flex h-screen">
       <Sidebar
@@ -68,10 +75,20 @@ function App() {
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex items-center justify-between border-b border-neutral-800 px-4 py-2.5">
           <h1 className="text-sm font-medium text-neutral-200">Support Desk AI</h1>
-          <UserSwitcher users={users} selectedUserId={userId} onChange={setUserId} />
+          <div className="flex items-center gap-3">
+            <span className="text-xs text-neutral-400">{user.name}</span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="flex items-center gap-1 rounded-lg border border-neutral-800 px-2 py-1 text-xs text-neutral-400 hover:bg-neutral-900 hover:text-neutral-200"
+            >
+              <LogOut className="h-3.5 w-3.5" />
+              Sign out
+            </button>
+          </div>
         </header>
         <MessageThread messages={conversation?.messages ?? []} streaming={streaming} sending={sending} />
-        <ChatInput onSend={handleSend} disabled={sending || !userId} />
+        <ChatInput onSend={handleSend} disabled={sending} />
       </div>
     </div>
   );
