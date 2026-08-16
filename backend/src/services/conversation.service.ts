@@ -9,14 +9,14 @@ export interface MessageDetails {
   agentType: AgentType | null;
   reasoning: string | null;
   toolCalls: unknown;
-  createdAt: Date;
+  createdAt: string;
 }
 
 export interface ConversationSummary {
   id: string;
   title: string | null;
-  createdAt: Date;
-  updatedAt: Date;
+  createdAt: string;
+  updatedAt: string;
 }
 
 export interface ConversationDetails extends ConversationSummary {
@@ -46,8 +46,8 @@ function toSummary(conversation: {
   return {
     id: conversation.id,
     title: conversation.title,
-    createdAt: conversation.createdAt,
-    updatedAt: conversation.updatedAt,
+    createdAt: conversation.createdAt.toISOString(),
+    updatedAt: conversation.updatedAt.toISOString(),
   };
 }
 
@@ -67,7 +67,7 @@ function toMessageDetails(message: {
     agentType: message.agentType,
     reasoning: message.reasoning,
     toolCalls: message.toolCalls,
-    createdAt: message.createdAt,
+    createdAt: message.createdAt.toISOString(),
   };
 }
 

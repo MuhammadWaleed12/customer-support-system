@@ -12,14 +12,14 @@ export interface ShipmentDetails {
   carrier: string;
   trackingNumber: string;
   status: ShipmentStatus;
-  estimatedDelivery: Date | null;
+  estimatedDelivery: string | null;
 }
 
 export interface OrderDetails {
   orderNumber: string;
   status: OrderStatus;
   total: number;
-  placedAt: Date;
+  placedAt: string;
   items: OrderItemDetails[];
   shipments: ShipmentDetails[];
 }
@@ -40,7 +40,7 @@ function toShipmentDetails(shipment: {
     carrier: shipment.carrier,
     trackingNumber: shipment.trackingNumber,
     status: shipment.status,
-    estimatedDelivery: shipment.estimatedDelivery,
+    estimatedDelivery: shipment.estimatedDelivery?.toISOString() ?? null,
   };
 }
 
@@ -59,7 +59,7 @@ export const orderService = {
       orderNumber: order.orderNumber,
       status: order.status,
       total: order.total.toNumber(),
-      placedAt: order.placedAt,
+      placedAt: order.placedAt.toISOString(),
       items: order.items.map((item) => ({
         productName: item.productName,
         quantity: item.quantity,

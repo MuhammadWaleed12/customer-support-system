@@ -38,7 +38,9 @@ describe("conversationService.getRecentMessages", () => {
 
     const messages = await conversationService.getRecentMessages(target.id, 2);
     expect(messages).toHaveLength(2);
-    expect(messages[0]!.createdAt.getTime()).toBeLessThanOrEqual(messages[1]!.createdAt.getTime());
+    expect(new Date(messages[0]!.createdAt).getTime()).toBeLessThanOrEqual(
+      new Date(messages[1]!.createdAt).getTime(),
+    );
   });
 });
 

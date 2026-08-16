@@ -6,16 +6,16 @@ export interface RefundDetails {
   amount: number;
   status: RefundStatus;
   reason: string | null;
-  requestedAt: Date;
-  completedAt: Date | null;
+  requestedAt: string;
+  completedAt: string | null;
 }
 
 export interface InvoiceDetails {
   invoiceNumber: string;
   amount: number;
   status: InvoiceStatus;
-  issuedAt: Date;
-  paidAt: Date | null;
+  issuedAt: string;
+  paidAt: string | null;
   refunds: RefundDetails[];
 }
 
@@ -36,8 +36,8 @@ function toRefundDetails(refund: {
     amount: refund.amount.toNumber(),
     status: refund.status,
     reason: refund.reason,
-    requestedAt: refund.requestedAt,
-    completedAt: refund.completedAt,
+    requestedAt: refund.requestedAt.toISOString(),
+    completedAt: refund.completedAt?.toISOString() ?? null,
   };
 }
 
@@ -56,8 +56,8 @@ export const billingService = {
       invoiceNumber: invoice.invoiceNumber,
       amount: invoice.amount.toNumber(),
       status: invoice.status,
-      issuedAt: invoice.issuedAt,
-      paidAt: invoice.paidAt,
+      issuedAt: invoice.issuedAt.toISOString(),
+      paidAt: invoice.paidAt?.toISOString() ?? null,
       refunds: invoice.refunds.map(toRefundDetails),
     };
   },
