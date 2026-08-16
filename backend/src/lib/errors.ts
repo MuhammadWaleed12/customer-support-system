@@ -24,3 +24,14 @@ export class ExternalServiceError extends Error {
     this.name = "ExternalServiceError";
   }
 }
+
+export class RateLimitError extends Error {
+  readonly statusCode = 429;
+  readonly retryAfterSeconds: number;
+
+  constructor(message: string, retryAfterSeconds: number) {
+    super(message);
+    this.name = "RateLimitError";
+    this.retryAfterSeconds = retryAfterSeconds;
+  }
+}

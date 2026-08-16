@@ -1,19 +1,22 @@
 import { useEffect, useRef } from "react";
 import { MessageBubble } from "./MessageBubble";
+import { StreamingMessageBubble } from "./StreamingMessageBubble";
 import { TypingIndicator } from "./TypingIndicator";
 import type { ConversationDetails } from "../../hooks/useConversation";
+import type { StreamingMessage } from "../../hooks/useStreamMessage";
 
 interface MessageThreadProps {
   messages: ConversationDetails["messages"];
+  streaming: StreamingMessage | null;
   sending: boolean;
 }
 
-export function MessageThread({ messages, sending }: MessageThreadProps) {
+export function MessageThread({ messages, streaming, sending }: MessageThreadProps) {
   const bottomRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
-  }, [messages.length, sending]);
+  }, [messages.length, streaming?.text]);
 
   if (messages.length === 0 && !sending) {
     return (
@@ -28,7 +31,8 @@ export function MessageThread({ messages, sending }: MessageThreadProps) {
       {messages.map((message) => (
         <MessageBubble key={message.id} message={message} />
       ))}
-      {sending && <TypingIndicator label="Thinking" />}
+      {sending && !streaming && <TypingIndicator label="Routing" />}
+      {streaming && <StreamingMessageBubble {...streaming} />}
       <div ref={bottomRef} />
     </div>
   );

@@ -6,7 +6,7 @@ import { UserSwitcher } from "./components/layout/UserSwitcher";
 import { useUsers } from "./hooks/useUsers";
 import { useConversations } from "./hooks/useConversations";
 import { useConversation } from "./hooks/useConversation";
-import { useSendMessage } from "./hooks/useSendMessage";
+import { useStreamMessage } from "./hooks/useStreamMessage";
 import { useDeleteConversation } from "./hooks/useDeleteConversation";
 import { useToast } from "./hooks/useToast";
 
@@ -21,23 +21,27 @@ function App() {
 
   const { conversations, loading: conversationsLoading, refetch: refetchConversations } =
     useConversations(userId);
-  const { conversation, refetch: refetchConversation } = useConversation(activeConversationId);
-  const { sendMessage, sending } = useSendMessage();
+  const { conversation, fetchById: fetchConversationById } = useConversation(activeConversationId);
+  const { sendMessage, sending, streaming } = useStreamMessage();
   const { deleteConversation } = useDeleteConversation();
   const { showToast } = useToast();
 
   async function handleSend(content: string) {
     if (!userId) return;
 
-    const outcome = await sendMessage({ userId, conversationId: activeConversationId, content });
-
-    if (!outcome.ok) {
-      showToast(outcome.error);
-      return;
-    }
-
-    setActiveConversationId(outcome.data.conversationId);
-    await Promise.all([refetchConversation(), refetchConversations()]);
+    await sendMessage(
+      { userId, conversationId: activeConversationId, content },
+      {
+        onRouting: async (event) => {
+          setActiveConversationId(event.conversationId);
+          await Promise.all([fetchConversationById(event.conversationId), refetchConversations()]);
+        },
+        onDone: async (event) => {
+          await Promise.all([fetchConversationById(event.conversationId), refetchConversations()]);
+        },
+        onError: (message) => showToast(message),
+      },
+    );
   }
 
   async function handleDelete(id: string) {
@@ -66,7 +70,7 @@ function App() {
           <h1 className="text-sm font-medium text-neutral-200">Support Desk AI</h1>
           <UserSwitcher users={users} selectedUserId={userId} onChange={setUserId} />
         </header>
-        <MessageThread messages={conversation?.messages ?? []} sending={sending} />
+        <MessageThread messages={conversation?.messages ?? []} streaming={streaming} sending={sending} />
         <ChatInput onSend={handleSend} disabled={sending || !userId} />
       </div>
     </div>

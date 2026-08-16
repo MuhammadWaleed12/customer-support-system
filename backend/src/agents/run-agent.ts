@@ -10,37 +10,26 @@ export interface ToolCallRecord {
   args: unknown;
 }
 
-export interface AgentRunResult {
-  text: string;
-  toolCalls: ToolCallRecord[];
-}
-
 /**
- * Delegates to the sub-agent matching the router's classification and waits
- * for the full response. Sub-agents stream internally (multi-step tool
- * calling needs it), but this call site awaits completion rather than
- * piping the live stream to the HTTP response — see phase-4-api-ui.md for
- * why token streaming is deferred past the "must ship" bar.
+ * Delegates to the sub-agent matching the router's classification and
+ * returns its live stream result unawaited, so the caller can forward text
+ * deltas to the client as they arrive.
  */
-export async function runAgent(
+export function dispatchAgent(
   agentType: RouterAgentType,
   userId: string,
   message: string,
   context: MessageDetails[],
-): Promise<AgentRunResult> {
-  const result =
-    agentType === "order"
-      ? runOrderAgent(message, context)
-      : agentType === "billing"
-        ? runBillingAgent(message, context)
-        : agentType === "support"
-          ? runSupportAgent(userId, message, context)
-          : runFallbackAgent(message, context);
-
-  const [text, rawToolCalls] = await Promise.all([result.text, result.toolCalls]);
-
-  return {
-    text,
-    toolCalls: rawToolCalls.map((call) => ({ name: call.toolName, args: call.input })),
-  };
+) {
+  switch (agentType) {
+    case "order":
+      return runOrderAgent(message, context);
+    case "billing":
+      return runBillingAgent(message, context);
+    case "support":
+      return runSupportAgent(userId, message, context);
+    case "fallback":
+    default:
+      return runFallbackAgent(message, context);
+  }
 }

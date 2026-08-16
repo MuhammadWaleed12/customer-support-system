@@ -16,9 +16,15 @@ const sendMessageSchema = z.object({
 
 export const sendMessage = factory.createHandlers(
   zValidator("json", sendMessageSchema),
-  async (c) => {
-    const result = await chatService.sendMessage(c.req.valid("json"));
-    return c.json(result);
+  (c) => {
+    const stream = chatService.streamMessage(c.req.valid("json"));
+    return new Response(stream, {
+      headers: {
+        "Content-Type": "application/x-ndjson; charset=utf-8",
+        "Cache-Control": "no-cache",
+        "X-Accel-Buffering": "no",
+      },
+    });
   },
 );
 

@@ -1,33 +1,10 @@
-import { useState, type ReactNode } from "react";
+import { useState } from "react";
 import { ChevronDown, ChevronRight } from "lucide-react";
-import ReactMarkdown from "react-markdown";
 import { AgentBadge } from "./AgentBadge";
+import { MarkdownContent } from "./MarkdownContent";
 import type { ConversationDetails } from "../../hooks/useConversation";
 
 type Message = ConversationDetails["messages"][number];
-
-const markdownComponents = {
-  p: ({ children }: { children?: ReactNode }) => (
-    <p className="mb-2 leading-relaxed last:mb-0">{children}</p>
-  ),
-  strong: ({ children }: { children?: ReactNode }) => (
-    <strong className="font-semibold text-neutral-50">{children}</strong>
-  ),
-  ul: ({ children }: { children?: ReactNode }) => (
-    <ul className="mb-2 list-disc space-y-0.5 pl-4 last:mb-0">{children}</ul>
-  ),
-  ol: ({ children }: { children?: ReactNode }) => (
-    <ol className="mb-2 list-decimal space-y-0.5 pl-4 last:mb-0">{children}</ol>
-  ),
-  code: ({ children }: { children?: ReactNode }) => (
-    <code className="rounded bg-neutral-800 px-1 py-0.5 font-mono text-xs">{children}</code>
-  ),
-  a: ({ children, href }: { children?: ReactNode; href?: string }) => (
-    <a href={href} target="_blank" rel="noreferrer" className="text-neutral-200 underline">
-      {children}
-    </a>
-  ),
-};
 
 interface ToolCallRecord {
   name: string;
@@ -61,9 +38,7 @@ export function MessageBubble({ message }: { message: Message }) {
         {isUser ? (
           <p className="whitespace-pre-wrap leading-relaxed">{message.content}</p>
         ) : (
-          <div className="text-sm leading-relaxed">
-            <ReactMarkdown components={markdownComponents}>{message.content}</ReactMarkdown>
-          </div>
+          <MarkdownContent content={message.content} />
         )}
         {!isUser && hasDetails && (
           <div className="mt-2 border-t border-neutral-800 pt-1.5">
