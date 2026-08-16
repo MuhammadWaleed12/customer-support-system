@@ -78,6 +78,8 @@ PORT=3001
 
 Both `DATABASE_URL` and `DIRECT_URL` come from the same Supabase project — one is the pooled connection (runtime queries), the other the direct connection (migrations only). If your database password contains special characters (`@`, `:`, `?`, `#`, `/`), percent-encode them or the connection string will fail to parse.
 
+The frontend needs no `.env` for local dev — `frontend/.env.example` documents `VITE_API_URL`, which defaults to `http://localhost:3001` in code. It only matters if the backend runs somewhere other than that (see Deployment below).
+
 ### 3. Set up the database
 
 ```bash
@@ -105,6 +107,34 @@ pnpm typecheck     # tsc --noEmit, both workspaces
 pnpm test          # backend vitest suite (hits the live seeded DB and the real Anthropic API)
 ```
 
+## Deployment
+
+Backend on Railway, frontend on Vercel, database stays on Supabase. Deploy the backend first — the frontend needs its URL.
+
+### 1. Backend → Railway
+
+1. Create a new Railway project from this GitHub repo (New Project → Deploy from GitHub repo).
+2. Railway auto-detects `railway.json` at the repo root, which sets the build to `pnpm install && pnpm --filter backend build` and the start command to run `prisma migrate deploy` before `pnpm --filter backend start` — no dashboard config needed for build/start.
+3. Add environment variables (Railway project → Variables): `DATABASE_URL`, `DIRECT_URL`, `ANTHROPIC_API_KEY`, `ROUTER_MODEL`, `AGENT_MODEL` — same values as `backend/.env`. Don't set `PORT`; Railway injects its own and the app already reads `process.env.PORT`.
+4. Deploy, then note the public URL Railway assigns (Settings → Networking → Generate Domain if one isn't already there), e.g. `https://your-app.up.railway.app`.
+5. Leave `CORS_ORIGIN` unset for now — it defaults to `http://localhost:5173`, which you'll fix in step 3 below once the frontend has a URL.
+
+### 2. Frontend → Vercel
+
+1. Import the same GitHub repo as a new Vercel project.
+2. Vercel auto-detects `vercel.json` at the repo root (`pnpm --filter frontend build`, output `frontend/dist`, install runs at the repo root so the frontend's workspace link to `backend`'s types resolves correctly) — leave Root Directory as the repo root, don't point it at `frontend/`.
+3. Add one environment variable: `VITE_API_URL` = the Railway URL from step 1.4 (e.g. `https://your-app.up.railway.app`).
+4. Deploy, then note the URL Vercel assigns (e.g. `https://your-app.vercel.app`).
+
+### 3. Close the loop: CORS
+
+Back in Railway, set `CORS_ORIGIN` to the Vercel URL from step 2.4, then redeploy the backend (Railway redeploys automatically on a variable change). Without this the browser will block every request with a CORS error even though the backend is reachable.
+
+### Verifying
+
+- `curl https://your-app.up.railway.app/health` should return `{"status":"ok",...}`.
+- Open the Vercel URL — the app should load, the user switcher should populate, and sending a message should stream a reply. Check the browser console for CORS errors first if anything hangs.
+
 ## Repository structure
 
 ```
@@ -131,6 +161,8 @@ frontend/
     lib/client.ts       # hc<AppType>
 context/
   features/             # one doc per Build Order phase — goals, what shipped, decisions made
+vercel.json              # frontend build config (Vercel)
+railway.json             # backend build/start config (Railway)
 ```
 
 ## API
@@ -164,5 +196,5 @@ The backend test suite runs against the real seeded Supabase database and the re
 Full history and the reasoning behind each decision lives in `context/features/` (one file per Build Order phase). A few worth calling out:
 
 - **Streaming**: chat responses buffer must-ship first (Phase 4), then upgraded to real token streaming (Phase 5) once the baseline was solid — matches project-spec.md's own priority list, which puts "streaming responses" below the must-ship bar.
-- **Deployment**: explicitly out of scope per project-spec.md, despite appearing in project-overview.md's bonus table.
+- **Deployment**: out of scope for the graded build per project-spec.md (despite appearing in project-overview.md's bonus table), added afterward — see the Deployment section above.
 - **Rate limiting**: a simple in-memory fixed-window limiter on `POST /chat/messages` (20 req/min), the one endpoint that costs real LLM calls. Single-process only by design — a multi-instance deployment would need a shared store.
