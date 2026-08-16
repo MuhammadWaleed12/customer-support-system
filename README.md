@@ -40,34 +40,64 @@ REST routes and agent tools share one data-access path — the domain services �
 | Styling | Tailwind CSS v4 |
 | Testing | Vitest |
 
-## Getting started
+## Running the project
+
+### Prerequisites
+
+- Node.js 20+
+- pnpm (via `corepack enable pnpm` if you don't have it — this repo pins `pnpm@9.15.0` in `package.json`)
+- A [Supabase](https://supabase.com) project (free tier is fine) — used purely as a Postgres host, nothing else
+- An [Anthropic API key](https://console.anthropic.com) with available credit
+
+### 1. Install dependencies
 
 ```bash
 pnpm install
 ```
 
-Create `backend/.env` from `backend/.env.example` and fill in:
+This also runs `prisma generate` automatically (wired as a `postinstall` script in `backend`).
+
+### 2. Configure environment variables
+
+Copy the example file:
 
 ```bash
-DATABASE_URL="postgresql://...@...:6543/postgres?pgbouncer=true"  # Supabase pooled connection
-DIRECT_URL="postgresql://...@...:5432/postgres"                    # Supabase direct connection (migrations)
-ANTHROPIC_API_KEY=""
+cp backend/.env.example backend/.env
+```
+
+Then fill in `backend/.env`:
+
+```bash
+DATABASE_URL="postgresql://...@...:6543/postgres?pgbouncer=true"  # Supabase → Settings → Database → Connection string → Transaction pooler
+DIRECT_URL="postgresql://...@...:5432/postgres"                    # same page → Session/direct connection (used only for migrations)
+ANTHROPIC_API_KEY=""                                                # console.anthropic.com → API keys
 ROUTER_MODEL="claude-haiku-4-5-20251001"   # small/fast model for classification
 AGENT_MODEL="claude-sonnet-5"              # stronger model for sub-agents
 PORT=3001
 ```
 
-Then set up the database and start both apps:
+Both `DATABASE_URL` and `DIRECT_URL` come from the same Supabase project — one is the pooled connection (runtime queries), the other the direct connection (migrations only). If your database password contains special characters (`@`, `:`, `?`, `#`, `/`), percent-encode them or the connection string will fail to parse.
+
+### 3. Set up the database
 
 ```bash
-pnpm db:migrate   # prisma migrate dev
-pnpm db:seed      # 3 users, 8 orders (every status), shipments, invoices, refunds, sample conversations
-pnpm dev          # backend on :3001, frontend on :5173
+pnpm db:migrate   # applies the Prisma schema (prisma migrate dev)
+pnpm db:seed      # 3 users, 8 orders across every status, shipments, invoices, refunds, sample conversations
 ```
 
-Open http://localhost:5173. No auth — pick a seeded user from the switcher in the header.
+### 4. Start the app
 
-## Other commands
+```bash
+pnpm dev
+```
+
+This runs both workspaces in parallel via Turborepo: the Hono backend on **http://localhost:3001** and the Vite frontend on **http://localhost:5173**.
+
+Open **http://localhost:5173** in a browser. There's no authentication — pick one of the three seeded users from the switcher in the top-right header and start chatting (try asking about an order number like `ORD-1004`, or an invoice like `INV-2002`).
+
+To confirm the backend alone is up: `curl http://localhost:3001/health`.
+
+### Other commands
 
 ```bash
 pnpm build        # typecheck + build both workspaces
