@@ -104,6 +104,7 @@ To confirm the backend alone is up: `curl http://localhost:3001/health`.
 ```bash
 pnpm build        # typecheck + build both workspaces
 pnpm typecheck     # tsc --noEmit, both workspaces
+pnpm test:unit     # deterministic backend unit tests; no database or API keys required
 pnpm test          # backend vitest suite (hits the live seeded DB and the real Anthropic API)
 ```
 
@@ -211,7 +212,9 @@ Domain services throw typed errors (`NotFoundError`, `ValidationError`, `Externa
 
 ## Testing
 
-The backend test suite runs against the real seeded Supabase database and the real Anthropic API — no mocks. Router classification is tested directly (`classifyIntent`) rather than through a full conversation, which is the point of keeping routing a separate, structured, non-streaming call. Domain services are tested against known seeded rows (order numbers, invoice numbers); the middleware tests build a throwaway Hono app inline.
+`pnpm test:unit` runs the deterministic password, error-middleware, and rate-limit tests without a database or API credentials. CI runs this lane on every pull request alongside typechecking and the production build.
+
+`pnpm test` runs the complete backend suite against the real seeded Supabase database and the real Anthropic API — no mocks. Router classification is tested directly (`classifyIntent`) rather than through a full conversation, which is the point of keeping routing a separate, structured, non-streaming call. Domain services are tested against known seeded rows (order numbers, invoice numbers); the middleware tests build a throwaway Hono app inline.
 
 ## Notes on scope
 

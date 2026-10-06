@@ -2,7 +2,7 @@
 
 <!-- Feature Name -->
 
-Authentication (custom email/password + sessions, seeded users only)
+Deterministic unit tests in CI
 
 ## Status
 
@@ -14,18 +14,17 @@ Completed
 
 <!-- Goals & requirements -->
 
-- Only the pre-existing seeded users can log in — no public signup
-- User-switcher dropdown removed; the session determines the current user
-- `userId` derived from the session everywhere, never trusted from client input
-- Ownership verification on conversation read/delete (currently missing)
+- Provide a credential-free unit-test lane for pull requests
+- Keep integration tests against real Supabase and Anthropic services available separately
+- Run unit tests alongside typechecking and production builds in CI
 
 ## Notes
 
 <!-- Any extra notes -->
 
-- Full details in `context/features/authentication.md`.
-- This reverses project-spec.md's explicit "no auth" scope decision — the user's own call, made after the graded build was complete.
-- Branch: `feature/authentication`
+- The unit lane covers password hashing, typed error mapping, and rate limiting.
+- The complete `pnpm test` suite remains unchanged because it intentionally exercises live services.
+- Branch: `chore/ci-unit-tests`
 
 ## History
 
@@ -39,3 +38,4 @@ Completed
 - Phase 5 — Bonuses. See `context/features/phase-5-bonuses.md`.
 - Deployment prep (Railway + Vercel).
 - Authentication. See `context/features/authentication.md`.
+- Deterministic unit-test lane added to CI.

@@ -7,6 +7,7 @@
     "lint": "turbo run lint",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
+    "test:unit": "pnpm --filter backend test:unit",
     "db:seed": "pnpm --filter backend db:seed",
     "db:migrate": "pnpm --filter backend db:migrate",
     "db:migrate:deploy": "pnpm --filter backend db:migrate:deploy"
