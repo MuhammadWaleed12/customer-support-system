@@ -2,7 +2,7 @@
 
 <!-- Feature Name -->
 
-Deterministic unit tests in CI
+Safe chat-stream error responses
 
 ## Status
 
@@ -14,17 +14,17 @@ Completed
 
 <!-- Goals & requirements -->
 
-- Provide a credential-free unit-test lane for pull requests
-- Keep integration tests against real Supabase and Anthropic services available separately
-- Run unit tests alongside typechecking and production builds in CI
+- Preserve user-safe messages from typed domain errors
+- Prevent unexpected infrastructure errors from leaking details to clients
+- Log unexpected errors server-side and protect the behavior with deterministic tests
 
 ## Notes
 
 <!-- Any extra notes -->
 
-- The unit lane covers password hashing, typed error mapping, and rate limiting.
-- The complete `pnpm test` suite remains unchanged because it intentionally exercises live services.
-- Branch: `chore/ci-unit-tests`
+- Streaming responses cannot use Hono's normal error middleware after headers are sent.
+- The stream therefore applies the same typed-error boundary itself.
+- Branch: `fix/chat-stream-error-boundary`
 
 ## History
 
@@ -39,3 +39,4 @@ Completed
 - Deployment prep (Railway + Vercel).
 - Authentication. See `context/features/authentication.md`.
 - Deterministic unit-test lane added to CI.
+- Safe chat-stream error boundary with regression coverage.

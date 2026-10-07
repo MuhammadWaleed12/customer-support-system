@@ -1,6 +1,7 @@
 import { conversationService, type MessageDetails } from "./conversation.service.js";
 import { classifyIntent, type RouterAgentType } from "../agents/router.agent.js";
 import { dispatchAgent } from "../agents/run-agent.js";
+import { ExternalServiceError, NotFoundError, ValidationError } from "../lib/errors.js";
 
 const CONTEXT_WINDOW = 10;
 
@@ -30,6 +31,19 @@ function deriveTitle(content: string): string {
 
 function encodeEvent(event: ChatStreamEvent): Uint8Array {
   return new TextEncoder().encode(`${JSON.stringify(event)}\n`);
+}
+
+function publicErrorMessage(error: unknown): string {
+  if (
+    error instanceof NotFoundError ||
+    error instanceof ValidationError ||
+    error instanceof ExternalServiceError
+  ) {
+    return error.message;
+  }
+
+  console.error(error);
+  return "Something went wrong.";
 }
 
 export const chatService = {
@@ -89,9 +103,8 @@ export const chatService = {
           });
 
           controller.enqueue(encodeEvent({ type: "done", conversationId: conversation.id, message }));
-        } catch (err) {
-          const message = err instanceof Error ? err.message : "Something went wrong.";
-          controller.enqueue(encodeEvent({ type: "error", message }));
+        } catch (error) {
+          controller.enqueue(encodeEvent({ type: "error", message: publicErrorMessage(error) }));
         } finally {
           controller.close();
         }
