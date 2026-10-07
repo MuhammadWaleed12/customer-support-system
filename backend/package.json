@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "echo \"no linter configured\"",
     "test": "vitest run",
-    "test:unit": "vitest run src/lib/password.test.ts src/middleware/error.middleware.test.ts src/middleware/rate-limit.middleware.test.ts",
+    "test:unit": "vitest run src/lib/password.test.ts src/middleware/error.middleware.test.ts src/middleware/rate-limit.middleware.test.ts src/services/chat.service.test.ts",
     "test:watch": "vitest",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",
