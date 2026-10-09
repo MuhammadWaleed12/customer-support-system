@@ -42,9 +42,9 @@ function toRefundDetails(refund: {
 }
 
 export const billingService = {
-  async getInvoiceByNumber(invoiceNumber: string): Promise<InvoiceDetails> {
-    const invoice = await prisma.invoice.findUnique({
-      where: { invoiceNumber },
+  async getInvoiceByNumber(userId: string, invoiceNumber: string): Promise<InvoiceDetails> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { invoiceNumber, userId },
       include: { refunds: true },
     });
 
@@ -62,9 +62,9 @@ export const billingService = {
     };
   },
 
-  async getRefundStatus(invoiceNumber: string): Promise<RefundStatusResult> {
-    const invoice = await prisma.invoice.findUnique({
-      where: { invoiceNumber },
+  async getRefundStatus(userId: string, invoiceNumber: string): Promise<RefundStatusResult> {
+    const invoice = await prisma.invoice.findFirst({
+      where: { invoiceNumber, userId },
       include: { refunds: true },
     });
 

@@ -1,10 +1,19 @@
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { orderService } from "./order.service.js";
 import { NotFoundError } from "../lib/errors.js";
+import { prisma } from "../db/client.js";
+
+let aliceId: string;
+let priyaId: string;
+
+beforeAll(async () => {
+  aliceId = (await prisma.user.findUniqueOrThrow({ where: { email: "alice@example.com" } })).id;
+  priyaId = (await prisma.user.findUniqueOrThrow({ where: { email: "priya@example.com" } })).id;
+});
 
 describe("orderService.getByOrderNumber", () => {
   it("returns full order details with items and shipment for a delivered order", async () => {
-    const order = await orderService.getByOrderNumber("ORD-1004");
+    const order = await orderService.getByOrderNumber(aliceId, "ORD-1004");
 
     expect(order.orderNumber).toBe("ORD-1004");
     expect(order.status).toBe("delivered");
@@ -17,20 +26,22 @@ describe("orderService.getByOrderNumber", () => {
   });
 
   it("returns an order with no shipments for a pending order", async () => {
-    const order = await orderService.getByOrderNumber("ORD-1001");
+    const order = await orderService.getByOrderNumber(aliceId, "ORD-1001");
 
     expect(order.status).toBe("pending");
     expect(order.shipments).toHaveLength(0);
   });
 
   it("throws NotFoundError for an unknown order number", async () => {
-    await expect(orderService.getByOrderNumber("ORD-9999")).rejects.toThrow(NotFoundError);
+    await expect(orderService.getByOrderNumber(aliceId, "ORD-9999")).rejects.toThrow(
+      NotFoundError,
+    );
   });
 });
 
 describe("orderService.getDeliveryStatus", () => {
   it("surfaces a shipment exception status", async () => {
-    const status = await orderService.getDeliveryStatus("ORD-1007");
+    const status = await orderService.getDeliveryStatus(priyaId, "ORD-1007");
 
     expect(status.orderStatus).toBe("shipped");
     expect(status.shipments).toHaveLength(1);
@@ -38,6 +49,8 @@ describe("orderService.getDeliveryStatus", () => {
   });
 
   it("throws NotFoundError for an unknown order number", async () => {
-    await expect(orderService.getDeliveryStatus("ORD-9999")).rejects.toThrow(NotFoundError);
+    await expect(orderService.getDeliveryStatus(priyaId, "ORD-9999")).rejects.toThrow(
+      NotFoundError,
+    );
   });
 });
