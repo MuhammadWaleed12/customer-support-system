@@ -23,9 +23,9 @@ export function dispatchAgent(
 ) {
   switch (agentType) {
     case "order":
-      return runOrderAgent(message, context);
+      return runOrderAgent(userId, message, context);
     case "billing":
-      return runBillingAgent(message, context);
+      return runBillingAgent(userId, message, context);
     case "support":
       return runSupportAgent(userId, message, context);
     case "fallback":

@@ -45,9 +45,9 @@ function toShipmentDetails(shipment: {
 }
 
 export const orderService = {
-  async getByOrderNumber(orderNumber: string): Promise<OrderDetails> {
-    const order = await prisma.order.findUnique({
-      where: { orderNumber },
+  async getByOrderNumber(userId: string, orderNumber: string): Promise<OrderDetails> {
+    const order = await prisma.order.findFirst({
+      where: { orderNumber, userId },
       include: { items: true, shipments: true },
     });
 
@@ -69,9 +69,9 @@ export const orderService = {
     };
   },
 
-  async getDeliveryStatus(orderNumber: string): Promise<DeliveryStatus> {
-    const order = await prisma.order.findUnique({
-      where: { orderNumber },
+  async getDeliveryStatus(userId: string, orderNumber: string): Promise<DeliveryStatus> {
+    const order = await prisma.order.findFirst({
+      where: { orderNumber, userId },
       include: { shipments: true },
     });
 
