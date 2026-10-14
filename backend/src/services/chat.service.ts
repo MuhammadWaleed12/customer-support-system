@@ -65,7 +65,7 @@ export const chatService = {
 
           const context = conversation.messages.slice(-CONTEXT_WINDOW);
 
-          await conversationService.addMessage(conversation.id, {
+          await conversationService.addMessage(conversation.id, input.userId, {
             role: "user",
             content: input.content,
           });
@@ -94,7 +94,7 @@ export const chatService = {
           const rawToolCalls = await agentStream.toolCalls;
           const toolCalls = rawToolCalls.map((call) => ({ name: call.toolName, args: call.input }));
 
-          const message = await conversationService.addMessage(conversation.id, {
+          const message = await conversationService.addMessage(conversation.id, input.userId, {
             role: "assistant",
             content: fullText,
             agentType: routing.agent,

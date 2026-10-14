@@ -46,11 +46,20 @@ describe("conversationService.getRecentMessages", () => {
     const conversations = await conversationService.listByUser(aliceId);
     const target = conversations.find((c) => c.title === "Where is my monitor order?")!;
 
-    const messages = await conversationService.getRecentMessages(target.id, 2);
+    const messages = await conversationService.getRecentMessages(target.id, aliceId, 2);
     expect(messages).toHaveLength(2);
     expect(new Date(messages[0]!.createdAt).getTime()).toBeLessThanOrEqual(
       new Date(messages[1]!.createdAt).getTime(),
     );
+  });
+
+  it("does not return recent messages from another user's conversation", async () => {
+    const conversations = await conversationService.listByUser(aliceId);
+    const target = conversations.find((c) => c.title === "Where is my monitor order?")!;
+
+    await expect(
+      conversationService.getRecentMessages(target.id, marcusId, 2),
+    ).rejects.toThrow(NotFoundError);
   });
 });
 
@@ -72,7 +81,7 @@ describe("conversationService create / addMessage / remove round trip", () => {
     const conversation = await conversationService.create(aliceId, "Test conversation");
     expect(conversation.title).toBe("Test conversation");
 
-    const message = await conversationService.addMessage(conversation.id, {
+    const message = await conversationService.addMessage(conversation.id, aliceId, {
       role: "user",
       content: "This is a throwaway test message.",
     });
@@ -92,9 +101,21 @@ describe("conversationService create / addMessage / remove round trip", () => {
     );
   });
 
+  it("does not append a message to another user's conversation", async () => {
+    const conversations = await conversationService.listByUser(aliceId);
+    const target = conversations.find((c) => c.title === "Where is my monitor order?")!;
+
+    await expect(
+      conversationService.addMessage(target.id, marcusId, {
+        role: "user",
+        content: "unauthorized message",
+      }),
+    ).rejects.toThrow(NotFoundError);
+  });
+
   it("throws NotFoundError when adding a message to a missing conversation", async () => {
     await expect(
-      conversationService.addMessage("00000000-0000-0000-0000-000000000000", {
+      conversationService.addMessage("00000000-0000-0000-0000-000000000000", aliceId, {
         role: "user",
         content: "orphaned",
       }),

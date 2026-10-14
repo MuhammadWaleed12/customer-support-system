@@ -101,7 +101,20 @@ export const conversationService = {
     };
   },
 
-  async getRecentMessages(conversationId: string, limit = 10): Promise<MessageDetails[]> {
+  async getRecentMessages(
+    conversationId: string,
+    userId: string,
+    limit = 10,
+  ): Promise<MessageDetails[]> {
+    const conversation = await prisma.conversation.findUnique({
+      where: { id: conversationId, userId },
+      select: { id: true },
+    });
+
+    if (!conversation) {
+      throw new NotFoundError(`No conversation found with id ${conversationId}`);
+    }
+
     const messages = await prisma.message.findMany({
       where: { conversationId },
       orderBy: { createdAt: "desc" },
@@ -117,9 +130,13 @@ export const conversationService = {
     return toSummary(conversation);
   },
 
-  async addMessage(conversationId: string, input: NewMessageInput): Promise<MessageDetails> {
+  async addMessage(
+    conversationId: string,
+    userId: string,
+    input: NewMessageInput,
+  ): Promise<MessageDetails> {
     const conversation = await prisma.conversation.findUnique({
-      where: { id: conversationId },
+      where: { id: conversationId, userId },
     });
 
     if (!conversation) {

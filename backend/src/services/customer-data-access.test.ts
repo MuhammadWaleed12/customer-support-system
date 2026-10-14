@@ -1,19 +1,24 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
-const { orderFindFirst, invoiceFindFirst } = vi.hoisted(() => ({
+const { orderFindFirst, invoiceFindFirst, conversationFindUnique, messageFindMany } = vi.hoisted(() => ({
   orderFindFirst: vi.fn(),
   invoiceFindFirst: vi.fn(),
+  conversationFindUnique: vi.fn(),
+  messageFindMany: vi.fn(),
 }));
 
 vi.mock("../db/client.js", () => ({
   prisma: {
     order: { findFirst: orderFindFirst },
     invoice: { findFirst: invoiceFindFirst },
+    conversation: { findUnique: conversationFindUnique },
+    message: { findMany: messageFindMany },
   },
 }));
 
 import { NotFoundError } from "../lib/errors.js";
 import { billingService } from "./billing.service.js";
+import { conversationService } from "./conversation.service.js";
 import { orderService } from "./order.service.js";
 
 beforeEach(() => {
@@ -72,6 +77,37 @@ describe("customer-scoped billing access", () => {
     expect(invoiceFindFirst).toHaveBeenCalledWith({
       where: { invoiceNumber: "INV-2002", userId: "user-2" },
       include: { refunds: true },
+    });
+  });
+});
+
+describe("customer-scoped conversation access", () => {
+  it("checks ownership before returning recent messages", async () => {
+    conversationFindUnique.mockResolvedValue(null);
+
+    await expect(
+      conversationService.getRecentMessages("conversation-1", "user-1", 5),
+    ).rejects.toThrow(NotFoundError);
+
+    expect(conversationFindUnique).toHaveBeenCalledWith({
+      where: { id: "conversation-1", userId: "user-1" },
+      select: { id: true },
+    });
+    expect(messageFindMany).not.toHaveBeenCalled();
+  });
+
+  it("checks ownership before appending a message", async () => {
+    conversationFindUnique.mockResolvedValue(null);
+
+    await expect(
+      conversationService.addMessage("conversation-1", "user-2", {
+        role: "user",
+        content: "unauthorized message",
+      }),
+    ).rejects.toThrow(NotFoundError);
+
+    expect(conversationFindUnique).toHaveBeenCalledWith({
+      where: { id: "conversation-1", userId: "user-2" },
     });
   });
 });
