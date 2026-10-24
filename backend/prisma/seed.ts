@@ -31,7 +31,7 @@ async function main() {
     data: { email: "priya@example.com", name: "Priya Patel", passwordHash },
   });
 
-  const ord1001 = await prisma.order.create({
+  await prisma.order.create({
     data: {
       userId: alice.id,
       orderNumber: "ORD-1001",
@@ -43,7 +43,7 @@ async function main() {
     },
   });
 
-  const ord1002 = await prisma.order.create({
+  await prisma.order.create({
     data: {
       userId: alice.id,
       orderNumber: "ORD-1002",

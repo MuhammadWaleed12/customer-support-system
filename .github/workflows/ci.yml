@@ -37,6 +37,9 @@ jobs:
       - name: Typecheck workspaces
         run: pnpm typecheck
 
+      - name: Lint workspaces
+        run: pnpm lint
+
       - name: Run deterministic unit tests
         run: pnpm test:unit
 

@@ -18,6 +18,9 @@ app.use(
 
 app.onError(errorMiddleware);
 
+// The value is intentionally retained so AppType captures Hono's chained
+// route schema for the frontend RPC client.
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
 const routes = app
   .route("/api/chat", chatRoutes)
   .route("/api/agents", agentRoutes)
