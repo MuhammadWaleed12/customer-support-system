@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { API_URL } from "../lib/client";
+import { consumeNdjsonStream, NdjsonParseError } from "../lib/ndjson";
 import type { ConversationDetails } from "./useConversation";
 
 type MessageDetails = ConversationDetails["messages"][number];
@@ -70,36 +71,24 @@ export function useStreamMessage() {
         return;
       }
 
-      const reader = res.body.getReader();
-      const decoder = new TextDecoder();
-      let buffer = "";
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        buffer = lines.pop() ?? "";
-
-        for (const line of lines) {
-          if (!line.trim()) continue;
-          const event = JSON.parse(line) as ChatStreamEvent;
-
-          if (event.type === "routing") {
-            setStreaming({ agentType: event.agent, reasoning: event.reasoning, text: "" });
-            await handlers.onRouting?.(event);
-          } else if (event.type === "text-delta") {
-            setStreaming((current) => (current ? { ...current, text: current.text + event.delta } : current));
-          } else if (event.type === "done") {
-            await handlers.onDone?.(event);
-          } else if (event.type === "error") {
-            handlers.onError?.(event.message);
-          }
+      await consumeNdjsonStream<ChatStreamEvent>(res.body, async (event) => {
+        if (event.type === "routing") {
+          setStreaming({ agentType: event.agent, reasoning: event.reasoning, text: "" });
+          await handlers.onRouting?.(event);
+        } else if (event.type === "text-delta") {
+          setStreaming((current) => (current ? { ...current, text: current.text + event.delta } : current));
+        } else if (event.type === "done") {
+          await handlers.onDone?.(event);
+        } else if (event.type === "error") {
+          handlers.onError?.(event.message);
         }
-      }
-    } catch {
-      handlers.onError?.("Couldn't reach the server. Please try again.");
+      });
+    } catch (error) {
+      handlers.onError?.(
+        error instanceof NdjsonParseError
+          ? "The server returned an invalid streaming response. Please try again."
+          : "Couldn't reach the server. Please try again.",
+      );
     } finally {
       setSending(false);
       setStreaming(null);

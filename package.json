@@ -7,7 +7,7 @@
     "lint": "eslint backend/src backend/prisma frontend/src --max-warnings=0",
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
-    "test:unit": "pnpm --filter backend test:unit",
+    "test:unit": "pnpm --filter backend test:unit && pnpm --filter frontend test",
     "db:seed": "pnpm --filter backend db:seed",
     "db:migrate": "pnpm --filter backend db:migrate",
     "db:migrate:deploy": "pnpm --filter backend db:migrate:deploy"
