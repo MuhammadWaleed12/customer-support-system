@@ -205,6 +205,8 @@ priya@example.com   / password123
 
 **How it works:** `POST /api/auth/login` verifies the password (hashed with Node's built-in `crypto.scrypt`, no extra dependency) and creates a `Session` row — an opaque random token as the primary key, looked up on every request via an httpOnly cookie. Every protected route derives `userId` from that session; nothing trusts a client-supplied user id anymore. `conversationService.getById`/`remove` verify the conversation actually belongs to the session's user, returning the same `NotFoundError` whether the conversation doesn't exist or just isn't yours — so a client can't distinguish the two.
 
+The login endpoint permits ten attempts per client IP in a fifteen-minute window. Login fields and chat messages also have explicit length limits, and chat content is trimmed before it reaches storage or the model, bounding avoidable password-hashing, database, and LLM work.
+
 **Cross-origin cookies.** The frontend and backend are different origins (different ports locally, different domains once deployed), so the session cookie needs `sameSite: "none"; secure: true` to survive that — but that combination requires HTTPS and breaks on local `http://localhost`. The cookie's attributes switch based on `NODE_ENV`: plain `sameSite: "lax"` for local dev, `sameSite: "none"; secure: true` when `NODE_ENV=production` (set this on Railway — see Deployment above). Getting this wrong is the most common way auth silently breaks after a deploy: requests succeed, but the browser never stores or sends the cookie, so every request looks logged-out.
 
 ## Error handling

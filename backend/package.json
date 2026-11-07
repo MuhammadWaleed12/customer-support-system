@@ -13,7 +13,7 @@
     "typecheck": "tsc --noEmit",
     "lint": "eslint src prisma --max-warnings=0",
     "test": "vitest run",
-    "test:unit": "vitest run src/lib/password.test.ts src/middleware/error.middleware.test.ts src/middleware/rate-limit.middleware.test.ts src/services/chat.service.test.ts src/services/customer-data-access.test.ts",
+    "test:unit": "vitest run src/lib/password.test.ts src/middleware/error.middleware.test.ts src/middleware/rate-limit.middleware.test.ts src/controllers/input-validation.test.ts src/routes/auth.routes.test.ts src/services/chat.service.test.ts src/services/customer-data-access.test.ts",
     "test:watch": "vitest",
     "postinstall": "prisma generate",
     "db:migrate": "prisma migrate dev",

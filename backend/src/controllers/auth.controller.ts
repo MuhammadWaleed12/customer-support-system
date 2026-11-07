@@ -20,9 +20,9 @@ function setSessionCookie(c: Context, token: string, expiresAt: Date) {
   });
 }
 
-const loginSchema = z.object({
-  email: z.string().email(),
-  password: z.string().min(1),
+export const loginSchema = z.object({
+  email: z.string().trim().email().max(320),
+  password: z.string().min(1).max(1024),
 });
 
 export const login = factory.createHandlers(zValidator("json", loginSchema), async (c) => {

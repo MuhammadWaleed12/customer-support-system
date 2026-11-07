@@ -9,9 +9,11 @@ import { requireAuth } from "../middleware/auth.middleware.js";
 const factory = createFactory();
 const conversationIdFactory = createFactory<Env, "/conversations/:id">();
 
-const sendMessageSchema = z.object({
+export const MAX_MESSAGE_LENGTH = 10_000;
+
+export const sendMessageSchema = z.object({
   conversationId: z.string().uuid().optional(),
-  content: z.string().min(1),
+  content: z.string().trim().min(1).max(MAX_MESSAGE_LENGTH),
 });
 
 export const sendMessage = factory.createHandlers(
