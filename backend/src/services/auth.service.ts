@@ -1,6 +1,6 @@
 import { randomBytes } from "node:crypto";
 import { prisma } from "../db/client.js";
-import { verifyPassword } from "../lib/password.js";
+import { verifyPasswordForUser } from "../lib/password.js";
 import { ValidationError } from "../lib/errors.js";
 
 const SESSION_DURATION_MS = 7 * 24 * 60 * 60 * 1000;
@@ -20,8 +20,9 @@ export interface LoginResult {
 export const authService = {
   async login(email: string, password: string): Promise<LoginResult> {
     const user = await prisma.user.findUnique({ where: { email } });
+    const passwordMatches = verifyPasswordForUser(password, user?.passwordHash);
 
-    if (!user || !verifyPassword(password, user.passwordHash)) {
+    if (!user || !passwordMatches) {
       throw new ValidationError("Invalid email or password");
     }
 

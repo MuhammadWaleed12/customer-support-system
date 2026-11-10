@@ -203,7 +203,7 @@ priya@example.com   / password123
 
 (Also printed at the end of `pnpm db:seed`.)
 
-**How it works:** `POST /api/auth/login` verifies the password (hashed with Node's built-in `crypto.scrypt`, no extra dependency) and creates a `Session` row — an opaque random token as the primary key, looked up on every request via an httpOnly cookie. Every protected route derives `userId` from that session; nothing trusts a client-supplied user id anymore. `conversationService.getById`/`remove` verify the conversation actually belongs to the session's user, returning the same `NotFoundError` whether the conversation doesn't exist or just isn't yours — so a client can't distinguish the two.
+**How it works:** `POST /api/auth/login` verifies the password (hashed with Node's built-in `crypto.scrypt`, no extra dependency) and creates a `Session` row — an opaque random token as the primary key, looked up on every request via an httpOnly cookie. Unknown emails are checked against a fixed dummy hash, so both unknown-email and wrong-password attempts perform the same expensive scrypt verification and return the same error. Every protected route derives `userId` from that session; nothing trusts a client-supplied user id anymore. `conversationService.getById`/`remove` verify the conversation actually belongs to the session's user, returning the same `NotFoundError` whether the conversation doesn't exist or just isn't yours — so a client can't distinguish the two.
 
 The login endpoint permits ten attempts per client IP in a fifteen-minute window. Login fields and chat messages also have explicit length limits, and chat content is trimmed before it reaches storage or the model, bounding avoidable password-hashing, database, and LLM work.
 

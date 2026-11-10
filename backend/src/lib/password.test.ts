@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { hashPassword, verifyPassword } from "./password.js";
+import { hashPassword, verifyPassword, verifyPasswordForUser } from "./password.js";
 
 describe("hashPassword / verifyPassword", () => {
   it("verifies the correct password against its hash", () => {
@@ -22,5 +22,17 @@ describe("hashPassword / verifyPassword", () => {
 
   it("rejects a malformed stored hash instead of throwing", () => {
     expect(verifyPassword("anything", "not-a-valid-hash")).toBe(false);
+  });
+});
+
+describe("verifyPasswordForUser", () => {
+  it("verifies an existing user's hash", () => {
+    const hash = hashPassword("correct-password");
+    expect(verifyPasswordForUser("correct-password", hash)).toBe(true);
+    expect(verifyPasswordForUser("wrong-password", hash)).toBe(false);
+  });
+
+  it("rejects a missing user after running the dummy-hash verification path", () => {
+    expect(verifyPasswordForUser("any-password", undefined)).toBe(false);
   });
 });

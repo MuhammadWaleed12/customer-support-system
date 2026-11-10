@@ -2,7 +2,7 @@
 
 <!-- Feature Name -->
 
-Safe chat-stream error responses
+Uniform login verification timing
 
 ## Status
 
@@ -14,17 +14,17 @@ Completed
 
 <!-- Goals & requirements -->
 
-- Preserve user-safe messages from typed domain errors
-- Prevent unexpected infrastructure errors from leaking details to clients
-- Log unexpected errors server-side and protect the behavior with deterministic tests
+- Run scrypt verification for both existing and unknown email addresses
+- Keep the same user-safe error for unknown-email and wrong-password attempts
+- Protect the helper behavior with deterministic unit tests
 
 ## Notes
 
 <!-- Any extra notes -->
 
-- Streaming responses cannot use Hono's normal error middleware after headers are sent.
-- The stream therefore applies the same typed-error boundary itself.
-- Branch: `fix/chat-stream-error-boundary`
+- Unknown users are checked against a fixed, valid dummy scrypt hash.
+- The dummy result can never authenticate because the helper also requires a stored user hash.
+- Branch: `fix/uniform-login-verification`
 
 ## History
 
@@ -40,3 +40,4 @@ Completed
 - Authentication. See `context/features/authentication.md`.
 - Deterministic unit-test lane added to CI.
 - Safe chat-stream error boundary with regression coverage.
+- Uniform scrypt verification for unknown-email and wrong-password login attempts.
