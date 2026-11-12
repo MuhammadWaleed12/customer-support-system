@@ -24,7 +24,7 @@ discussion.
 
 Requirements:
 
-- Node.js 20 or newer
+- Node.js 22 or newer
 - pnpm 9.15.0
 - a Supabase/PostgreSQL project
 - an Anthropic API key for live AI tests
@@ -65,7 +65,7 @@ pnpm build
 ```
 
 The continuous-integration workflow runs the type check, unit tests, and build
-on Node.js 20 with the lockfile frozen.
+on Node.js 22 with the lockfile frozen.
 
 The full integration suite is separate:
 

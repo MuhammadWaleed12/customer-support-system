@@ -44,7 +44,7 @@ REST routes and agent tools share one data-access path — the domain services �
 
 ### Prerequisites
 
-- Node.js 20+
+- Node.js 22+
 - pnpm (via `corepack enable pnpm` if you don't have it — this repo pins `pnpm@9.15.0` in `package.json`)
 - A [Supabase](https://supabase.com) project (free tier is fine) — used purely as a Postgres host, nothing else
 - An [Anthropic API key](https://console.anthropic.com) with available credit
