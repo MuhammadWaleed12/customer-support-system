@@ -13,7 +13,7 @@
   },
   "dependencies": {
     "backend": "workspace:*",
-    "hono": "^4.6.16",
+    "hono": "^4.13.18",
     "lucide-react": "^0.469.0",
     "react": "^19.0.0",
     "react-dom": "^19.0.0",
