@@ -58,14 +58,15 @@ pnpm dev
 Run the deterministic checks before opening a pull request:
 
 ```bash
+pnpm security:audit
 pnpm lint
 pnpm typecheck
 pnpm test:unit
 pnpm build
 ```
 
-The continuous-integration workflow runs the type check, unit tests, and build
-on Node.js 22 with the lockfile frozen.
+The continuous-integration workflow runs a production dependency audit, type
+check, unit tests, and build on Node.js 22 with the lockfile frozen.
 
 The full integration suite is separate:
 

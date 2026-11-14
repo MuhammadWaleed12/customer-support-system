@@ -8,6 +8,7 @@
     "typecheck": "turbo run typecheck",
     "test": "turbo run test",
     "test:unit": "pnpm --filter backend test:unit && pnpm --filter frontend test",
+    "security:audit": "pnpm audit --prod --audit-level=high",
     "db:seed": "pnpm --filter backend db:seed",
     "db:migrate": "pnpm --filter backend db:migrate",
     "db:migrate:deploy": "pnpm --filter backend db:migrate:deploy"
